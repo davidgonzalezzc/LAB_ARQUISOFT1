@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  sql-server:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sql-server
+    environment:
+      SA_PASSWORD: YourStrongPassword
+      ACCEPT_EULA: Y
+    ports:
+      - "1433:1433"
+  
+  api:
+    build:
+      context: ./your-dotnet-app-directory
+      dockerfile: Dockerfile
+    container_name: dotnet-app
+    ports:
+      - "5000:80"
+    depends_on:
+      - sql-server
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=sql-server;Database=YourDatabase;User=sa;Password=YourStrongPassword"
+    
+
+  swagger:
+    image: swaggerapi/swagger-ui
+    container_name: swagger-ui
+    ports:
+      - "8080:8080"
+    environment:
+      SWAGGER_JSON: /api/swagger/v1/swagger.json
+    depends_on:
+      - api
